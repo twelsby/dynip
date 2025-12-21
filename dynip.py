@@ -16,6 +16,13 @@ def set_ipv6_address(ip, name, key):
 
 
 def get_current_ipv6():
+    try:
+        return socket.getaddrinfo("home.welsby.de", None, socket.AF_INET6)[0][4][0]
+    except:
+        return None
+
+
+def get_new_ipv6():
     """Get the current external IPv6 address or return None if no connection to the IPify service is possible"""
     try:
         return requests.get("https://api6.ipify.org", timeout=5).text
@@ -30,13 +37,21 @@ def main():
     parser.add_argument('-k', '--key')
     args = parser.parse_args()
 
-    cur_ip = socket.getaddrinfo("home.welsby.de", None, socket.AF_INET6)[0][4][0]
-    new_ip = get_current_ipv6()
+    cur_ip = get_current_ipv6()
 
-    print(f"Current IP: {cur_ip}")
-    print(f"New IP: {new_ip}")
+    if cur_ip is None:
+        print("Failed to get current IP address")
+        return
+
+    new_ip = get_new_ipv6()
+
+    if new_ip is None:
+        print("Failed to get new IP address")
+        return
 
     if cur_ip != new_ip:
+        print(f"Current IP: {cur_ip}")
+        print(f"New IP: {new_ip}")
         print("Setting IP address")
         print(f"Result: {set_ipv6_address(new_ip, "home", args.key)}")
 
