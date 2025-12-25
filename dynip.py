@@ -3,6 +3,7 @@ import requests
 import socket
 import argparse
 
+names = [ "home", "jellyfin" ]
 
 def set_ipv6_address(ip, name, key):
     url = f"https://api.gandi.net/v5/livedns/domains/welsby.de/records/{name}/AAAA"
@@ -52,8 +53,11 @@ def main():
     if cur_ip != new_ip:
         print(f"Current IP: {cur_ip}")
         print(f"New IP: {new_ip}")
-        print("Setting IP address")
-        print(f"Result: {set_ipv6_address(new_ip, "home", args.key)}")
+
+        for name in names:
+            print(f"Setting IP address for {name}")
+            result = set_ipv6_address(new_ip, name, args.key)
+            print(f"Result: {result}")
 
 
 if __name__ == "__main__":
