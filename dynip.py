@@ -3,7 +3,7 @@ import requests
 import socket
 import argparse
 
-names = [ "home", "jellyfin" ]
+names = [ "home", "jellyfin", "mars" ]
 
 def set_ipv6_address(ip, name, key):
     url = f"https://api.gandi.net/v5/livedns/domains/welsby.de/records/{name}/AAAA"
@@ -16,9 +16,9 @@ def set_ipv6_address(ip, name, key):
     return response.text
 
 
-def get_current_ipv6():
+def get_current_ipv6(host):
     try:
-        return socket.getaddrinfo("home.welsby.de", None, socket.AF_INET6)[0][4][0]
+        return socket.getaddrinfo(f"{host}.welsby.de", None, socket.AF_INET6)[0][4][0]
     except:
         return None
 
@@ -31,6 +31,11 @@ def get_new_ipv6():
         return None
 
 
+def split_ipv6_address(addr):
+    sa = addr.split(':')
+    return ':'.join(sa[:4]), ':'.join(sa[4:])
+
+
 def main():
     parser = argparse.ArgumentParser(
                     prog='dynip',
@@ -38,7 +43,7 @@ def main():
     parser.add_argument('-k', '--key')
     args = parser.parse_args()
 
-    cur_ip = get_current_ipv6()
+    cur_ip = get_current_ipv6("home")
 
     if cur_ip is None:
         print("Failed to get current IP address")
@@ -54,8 +59,13 @@ def main():
         print(f"Current IP: {cur_ip}")
         print(f"New IP: {new_ip}")
 
+        new_net, new_host = split_ipv6_address(new_ip)
+
         for name in names:
-            print(f"Setting IP address for {name}")
+            cur_ip = get_current_ipv6(name)
+            cur_net, cur_host = split_ipv6_address(cur_ip)
+            new_ip = f"{new_net}:{cur_host}"
+            print(f"Setting IP address for {name} {cur_ip} => {new_ip}")
             result = set_ipv6_address(new_ip, name, args.key)
             print(f"Result: {result}")
 
