@@ -2,8 +2,11 @@
 import requests
 import socket
 import argparse
+from ipify2 import get_ipv6
+from ipify2.exceptions import ConnectionError, ServiceError
 
 names = [ "home", "jellyfin", "mars" ]
+
 
 def set_ipv6_address(ip, name, key):
     url = f"https://api.gandi.net/v5/livedns/domains/welsby.de/records/{name}/AAAA"
@@ -26,9 +29,13 @@ def get_current_ipv6(host):
 def get_new_ipv6():
     """Get the current external IPv6 address or return None if no connection to the IPify service is possible"""
     try:
-        return requests.get("https://api6.ipify.org", timeout=5).text
-    except requests.exceptions.ConnectionError as ex:
-        return None
+        return get_ipv6()
+    except ConnectionError:
+        print("Error connecting to ipify")
+    except ServiceError:
+        print("Ipify failed for an unknown reason")
+
+    return None
 
 
 def split_ipv6_address(addr):
